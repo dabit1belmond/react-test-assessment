@@ -38,14 +38,14 @@ describe('TodoList', () => {
     fireEvent.click(getByRole('button'));
     expect(spy).toHaveBeenCalledWith(actions.addTodo('Pay the rent'));
   });
-  it('should not let you add empty todos, and show a message letting you know', () => {
+  it('should not let you add empty todos, and show the message "Todo\'s can\'t be empty"', () => {
     const spy = jest.spyOn(actions, 'addTodo');
     const { getByRole, getByText } = renderComponent();
     fireEvent.click(getByRole('button'));
     expect(spy).not.toHaveBeenCalled();
     expect(getByText("Todo's can't be empty"));
   });
-  it('should not let you add existing todos', () => {
+  it('should not let you add existing todos and show the message "This Todo already exists"', () => {
     const spy = jest.spyOn(actions, 'addTodo');
     const { getByRole, getByText } = renderComponent({
       todoList: ['Wash the car', 'Walk the dog', 'Clean the kitchen'],
