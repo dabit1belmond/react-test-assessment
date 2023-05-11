@@ -5,12 +5,13 @@ const initialState = {
 };
 
 const appSlice = createSlice({
-  initialState: initialState,
+  initialState,
   name: 'appSlice',
   reducers: {
+    reset: () => initialState,
     addTodo: (state, action) => {},
   },
 });
 
-export const { addTodo } = appSlice.actions;
+export const { reset, addTodo } = appSlice.actions;
 export default appSlice.reducer;
