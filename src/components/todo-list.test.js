@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import TodoList from './todo-list';
 import store from '../redux/store';
 import { Provider } from 'react-redux';
@@ -16,45 +16,50 @@ describe('TodoList', () => {
     );
   };
 
+  const typeAndAddNewTodo = (todo) => {
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: todo },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Todo' }));
+  };
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    store.dispatch(actions.reset());
     props = {};
   });
-  it('should list the todos', () => {
-    store.dispatch(actions.addTodo('Wash the car'));
-    store.dispatch(actions.addTodo('Walk the dog'));
-    store.dispatch(actions.addTodo('Clean the kitchen'));
-    const { getByText } = renderComponent();
-    expect(getByText('Wash the car')).toBeInTheDocument();
-    expect(getByText('Walk the dog')).toBeInTheDocument();
-    expect(getByText('Clean the kitchen')).toBeInTheDocument();
+  it('lists the todos', () => {
+    renderComponent();
+    typeAndAddNewTodo('Wash the car');
+    typeAndAddNewTodo('Walk the dog');
+    typeAndAddNewTodo('Clean the kitchen');
+    expect(screen.getByText('Wash the car')).toBeInTheDocument();
+    expect(screen.getByText('Walk the dog')).toBeInTheDocument();
+    expect(screen.getByText('Clean the kitchen')).toBeInTheDocument();
   });
-  it('should dispatch "addTodo" action clicking on the Add Todo Button with the todo written in the input', () => {
+  it('dispatches "addTodo" action when clicking on the Add Todo Button with the todo written in the input', () => {
     const spy = jest.spyOn(store, 'dispatch');
-    const { getByRole } = renderComponent();
-    fireEvent.change(getByRole('textbox'), {
-      target: { value: 'Pay the rent' },
-    });
-    fireEvent.click(getByRole('button'));
+    renderComponent();
+    typeAndAddNewTodo('Pay the rent');
     expect(spy).toHaveBeenCalledWith(actions.addTodo('Pay the rent'));
   });
-  it('should not let you add empty todos, and show the message "Todo\'s can\'t be empty"', () => {
+  it('does not let you add empty todos, and show the message "Todo\'s can\'t be empty"', () => {
     const spy = jest.spyOn(actions, 'addTodo');
-    const { getByRole, getByText } = renderComponent();
-    fireEvent.click(getByRole('button'));
+    renderComponent();
+    expect(screen.queryByText("Todo's can't be empty")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
     expect(spy).not.toHaveBeenCalled();
-    expect(getByText("Todo's can't be empty"));
+    expect(screen.getByText("Todo's can't be empty")).toBeInTheDocument();
   });
-  it('should not let you add existing todos and show the message "This Todo already exists"', () => {
+  it('does not let you add existing todos and show the message "This Todo already exists"', () => {
     const spy = jest.spyOn(actions, 'addTodo');
-    const { getByRole, getByText } = renderComponent({
-      todoList: ['Wash the car', 'Walk the dog', 'Clean the kitchen'],
-    });
-    fireEvent.change(getByRole('textbox'), {
-      target: { value: 'Clean the kitchen' },
-    });
-    fireEvent.click(getByRole('button'));
-    expect(spy).not.toHaveBeenCalled();
-    expect(getByText('This Todo already exists'));
+    renderComponent();
+    typeAndAddNewTodo('Clean the kitchen');
+    expect(
+      screen.queryByText('This Todo already exists')
+    ).not.toBeInTheDocument();
+    typeAndAddNewTodo('Clean the kitchen');
+    expect(screen.getByText('This Todo already exists')).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledTimes(1); // second called not triggered
   });
 });
